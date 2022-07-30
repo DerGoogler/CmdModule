@@ -1,4 +1,4 @@
-import Cmd from "./core";
+import CMD from "./core";
 export enum Color {
   Reset = "\x1b[0m",
   Bright = "\x1b[1m",
@@ -26,4 +26,4 @@ export enum Color {
   BgCyan = "\x1b[46m",
   BgWhite = "\x1b[47m",
 }
-export default Cmd;
+export default CMD;

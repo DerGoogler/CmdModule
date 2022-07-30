@@ -1,22 +1,25 @@
 import * as readline from "readline";
 import _ from "underscore";
 import { Color } from ".";
-import { Self } from "./self";
+import { commands } from "./commands";
+import self, { Self } from "./self";
 
-namespace Cmd {
+namespace CMD {
   interface LoopOptions {
     prompt: string;
     commands: Commands;
     defaultHandler?: ((self: Self, args: string[]) => void) | undefined;
   }
 
-  type Commands = {
+  export type Commands = {
     readonly [name: string]: {
+      readonly description?: string | undefined;
       /**
        * Defines the command
+       * @param self
        * @param args
        */
-      callback: (self: Self, args: Array<string>) => void;
+      readonly invoke: (self: Self, args: Array<string>) => void;
     };
   };
 
@@ -24,7 +27,6 @@ namespace Cmd {
    * Create an own interactive shell
    */
   export class Module {
-    private self: Self;
     private rl: readline.Interface;
     private commands: Commands;
     private prompt: string = "CmdModule$";
@@ -33,13 +35,7 @@ namespace Cmd {
 
     public constructor(options: LoopOptions) {
       this.prompt = options.prompt;
-      this.commands = Object.assign(options.commands, {
-        noFound: {
-          callback(args: any[]) {
-            console.log(`${Color.FgYellow}${args[0]} command not found${Color.Reset}`);
-          },
-        },
-      });
+      this.commands = Object.assign(options.commands, commands);
       this.defaultHandler = options.defaultHandler;
 
       this.rl = readline.createInterface({
@@ -48,12 +44,6 @@ namespace Cmd {
         prompt: `${this.prompt} `,
       });
       this.rl.prompt();
-
-      this.self = new Self({
-        execCallback: () => {
-          this.rl.prompt();
-        },
-      });
     }
 
     public run() {
@@ -70,14 +60,18 @@ namespace Cmd {
 
             const command = (self: Self, args: Array<string>) => {
               if (commandName && this.commands[commandName]) {
-                this.commands[commandName].callback(self, args);
+                if (args.includes("--help")) {
+                  console.log(this.commands[commandName].description);
+                } else {
+                  this.commands[commandName].invoke(self, args);
+                }
               } else {
-                this.defaultHandler ? this.defaultHandler(self, args) : this.commands.noFound.callback(self, args);
+                this.defaultHandler ? this.defaultHandler(self, args) : this.commands.noFound.invoke(self, args);
               }
             };
 
             if (typeof command === "function") {
-              command(this.self, args);
+              command(self, args);
             } else {
               console.error(`${commandName} has no callback function`);
             }
@@ -94,4 +88,4 @@ namespace Cmd {
   }
 }
 
-export default Cmd;
+export default CMD;

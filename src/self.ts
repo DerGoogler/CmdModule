@@ -1,38 +1,17 @@
-import { exec, ExecOptions } from "child_process";
-import { Color } from ".";
-
 interface Self {
-  print(message?: any, ...optionalParams: any[]): void;
-  exec(command: Array<string>, options?: ExecOptions | undefined): void;
-}
-
-interface SelfOptions {
-  execCallback?: () => void;
+  print(data: string): void;
 }
 
 class Self {
-  private execCallback: (() => void) | undefined;
-
-  public constructor(options: SelfOptions) {
-    this.execCallback = options.execCallback;
+  public print<T = any>(data: T): void {
+    console.log(data);
   }
-
-  public print(message?: any, ...optionalParams: any[]): void {
-    console.log(message, ...optionalParams);
-  }
-
-  public exec(command: Array<string>, options?: ExecOptions | undefined): void {
-    exec(command.join(" "), options, (error, stdout, stderror) => {
-      // if any error while executing
-      if (error) {
-        this.print(`${Color.FgRed}${error}${Color.Reset}`);
-        return;
-      }
-
-      this.print(stdout);
-      this.execCallback;
-    });
+  public quit(): void {
+    process.exit(1);
   }
 }
 
 export { Self };
+type self = typeof self[keyof typeof self];
+const self: Self = new Self();
+export default self;
