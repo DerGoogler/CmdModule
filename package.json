@@ -1,5 +1,5 @@
 {
-  "name": "typescript",
+  "name": "cmdmodule",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
@@ -21,23 +21,31 @@
     "**/typescript": "^4.1.3"
   },
   "keywords": [
-    "dg",
+    "cmd",
+    "nodejs",
+    "interactive",
+    "shell",
     "tools",
     "typescript"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/<repo>"
+    "url": "https://github.com/DerGoogler/cmdmodule"
   },
-  "author": "",
+  "author": "Der_Googler <jimmyboehm@dergoogler.com>",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/<repo>/issues"
+    "url": "https://github.com/DerGoogler/cmdmodule/issues"
   },
-  "homepage": "https://github.com/<repo>",
-  "dependencies": {},
+  "homepage": "https://github.com/DerGoogler/cmdmodule",
+  "dependencies": {
+    "readcommand": "^0.4.0",
+    "underscore": "^1.13.4"
+  },
   "devDependencies": {
-    "@types/react": "^18.0.14",
-    "@types/react-dom": "^18.0.5",
+    "@types/sprintf-js": "^1.1.2",
+    "@types/underscore": "^1.11.4",
+    "postcss": "^8.4.14",
     "rollup-plugin-postcss": "^4.0.2",
     "tsdx": "^0.14.1",
     "tslib": "^2.4.0",
