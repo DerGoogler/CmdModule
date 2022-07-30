@@ -1,12 +1,13 @@
 import * as readline from "readline";
 import _ from "underscore";
 import { Color } from ".";
+import { Self } from "./self";
 
 namespace Cmd {
   interface LoopOptions {
     prompt: string;
     commands: Commands;
-    defaultHandler?: ((args: string[]) => void) | undefined;
+    defaultHandler?: ((self: Self, args: string[]) => void) | undefined;
   }
 
   type Commands = {
@@ -15,7 +16,7 @@ namespace Cmd {
        * Defines the command
        * @param args
        */
-      callback: (args: Array<string>) => void;
+      callback: (self: Self, args: Array<string>) => void;
     };
   };
 
@@ -23,11 +24,12 @@ namespace Cmd {
    * Create an own interactive shell
    */
   export class Module {
+    private self: Self;
     private rl: readline.Interface;
     private commands: Commands;
     private prompt: string = "CmdModule$";
 
-    private defaultHandler: ((args: string[]) => void) | undefined;
+    private defaultHandler: ((self: Self, args: string[]) => void) | undefined;
 
     public constructor(options: LoopOptions) {
       this.prompt = options.prompt;
@@ -46,6 +48,12 @@ namespace Cmd {
         prompt: `${this.prompt} `,
       });
       this.rl.prompt();
+
+      this.self = new Self({
+        execCallback: () => {
+          this.rl.prompt();
+        },
+      });
     }
 
     public run() {
@@ -60,16 +68,16 @@ namespace Cmd {
 
             const commandName = args.shift();
 
-            const command = (args: Array<string>) => {
+            const command = (self: Self, args: Array<string>) => {
               if (commandName && this.commands[commandName]) {
-                this.commands[commandName].callback(args);
+                this.commands[commandName].callback(self, args);
               } else {
-                this.defaultHandler ? this.defaultHandler(args) : this.commands.noFound.callback(args);
+                this.defaultHandler ? this.defaultHandler(self, args) : this.commands.noFound.callback(self, args);
               }
             };
 
             if (typeof command === "function") {
-              command(args);
+              command(this.self, args);
             } else {
               console.error(`${commandName} has no callback function`);
             }

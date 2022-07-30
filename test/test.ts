@@ -4,13 +4,18 @@ const cmd = new Cmd.Module({
   prompt: `${Color.FgGreen}CLI${Color.Reset}$`,
   commands: {
     testArgs: {
-      callback: args => {
-        console.log(args);
+      callback: (self, args) => {
+        self.print(args);
       },
     },
     echo: {
-      callback: args => {
-        console.log(args[0]);
+      callback: (self, args) => {
+        self.print(args[0]);
+      },
+    },
+    add: {
+      callback(self, args) {
+        self.exec(["bun", "add", args[0]]);
       },
     },
   },
