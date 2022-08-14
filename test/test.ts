@@ -15,7 +15,9 @@ const cmd = new Cmd.Module({
     },
     run: {
       invoke: (self, args) => {
-        self.spawn("npm", ["run", args[0]])((code)=> {
+        self.spawn("npm", ["run", args[0]], {
+          workingDirectory: "./"
+        })((code)=> {
           cmd.rl.prompt()
         })
       },

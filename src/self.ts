@@ -7,6 +7,9 @@ interface Self {
 }
 
 type SpawnCallback = (code: number | null) => void;
+type SpawnOptions = {
+  workingDirectory?: string;
+};
 
 class Self {
   public print(data: any): void {
@@ -18,8 +21,8 @@ class Self {
   public quit(code?: number): void {
     process.exit(code ? code : 1);
   }
-  public spawn(command: string, args: ReadonlyArray<string>): (callback: SpawnCallback) => void {
-    let ls = spawn(command, args);
+  public spawn(command: string, args: ReadonlyArray<string>, options?: SpawnOptions): (callback: SpawnCallback) => void {
+    let ls = spawn(command, args, { cwd: options?.workingDirectory });
     ls.stdout.on("data", data => {
       this.print(data.toString());
     });
