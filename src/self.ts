@@ -3,7 +3,7 @@ import { spawn } from "child_process";
 interface Self {
   print(data: string): void;
   quit(): void;
-  spawn(command: string, args: ReadonlyArray<string>): (callback: SpawnCallback) => void;
+  spawn(command: string, args: ReadonlyArray<string>, options?: SpawnOptions): (callback: SpawnCallback) => void;
 }
 
 type SpawnCallback = (code: number | null) => void;
@@ -38,7 +38,7 @@ class Self {
   }
 }
 
-export { Self };
+export { Self, SpawnCallback, SpawnOptions };
 type self = typeof self[keyof typeof self];
 const self: Self = new Self();
 export default self;

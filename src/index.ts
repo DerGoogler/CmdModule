@@ -1,4 +1,5 @@
 import CMD from "./core";
+import { SpawnCallback, SpawnOptions } from "./self";
 export enum Color {
   Reset = "\x1b[0m",
   Bright = "\x1b[1m",
@@ -27,3 +28,4 @@ export enum Color {
   BgWhite = "\x1b[47m",
 }
 export default CMD;
+export { SpawnCallback, SpawnOptions };
