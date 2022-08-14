@@ -27,7 +27,7 @@ namespace CMD {
    * Create an own interactive shell
    */
   export class Module {
-    private rl: readline.Interface;
+    public rl: readline.Interface;
     private commands: Commands;
     private prompt: string = "CmdModule$";
 

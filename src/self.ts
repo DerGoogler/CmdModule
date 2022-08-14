@@ -1,13 +1,37 @@
+import { spawn } from "child_process";
+
 interface Self {
   print(data: string): void;
+  quit(): void;
+  spawn(command: string, args: ReadonlyArray<string>): (callback: SpawnCallback) => void;
 }
 
+type SpawnCallback = (code: number | null) => void;
+
 class Self {
-  public print<T = any>(data: T): void {
-    console.log(data);
+  public print(data: any): void {
+    for (const str of data) {
+      process.stdout.write(str);
+    }
+    process.stdout.write("\n");
   }
-  public quit(): void {
-    process.exit(1);
+  public quit(code?: number): void {
+    process.exit(code ? code : 1);
+  }
+  public spawn(command: string, args: ReadonlyArray<string>): (callback: SpawnCallback) => void {
+    let ls = spawn(command, args);
+    ls.stdout.on("data", data => {
+      this.print(data.toString());
+    });
+    ls.stderr.on("data", data => {
+      this.print(data.toString());
+    });
+
+    return (callback: SpawnCallback) => {
+      ls.on("exit", code => {
+        callback(code);
+      });
+    };
   }
 }
 
