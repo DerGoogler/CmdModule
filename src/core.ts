@@ -1,47 +1,58 @@
 import * as readline from "readline";
 import _ from "underscore";
-import { Color } from ".";
-import { commands } from "./commands";
-import self, { Self } from "./self";
+// import { commands } from "./commands";
+import { self, Self } from "./self";
+import { css } from "./util/css";
+import { spawn } from "child_process";
 
 namespace CMD {
   interface LoopOptions {
     prompt: string;
     commands: Commands;
+    /**
+     * Default command handle. Such as unknown commands.
+     */
     defaultHandler?: ((self: Self, args: string[]) => void) | undefined;
   }
 
-  export type Commands = {
-    readonly [name: string]: {
-      readonly description?: string | undefined;
+  export type SpawnCallback = (code: number | null) => void;
+  export type SpawnOptions = {
+    workingDirectory?: string;
+  };
+
+  export type Commands = Record<
+    string,
+    Readonly<{
+      description?: string | undefined;
+      disableReprompt?: boolean;
       /**
        * Defines the command
        * @param self
        * @param args
        */
-      readonly invoke: (self: Self, args: Array<string>) => void;
-    };
-  };
+      invoke: (self: Self, args: Array<string>) => void;
+    }>
+  >;
 
   /**
    * Create an own interactive shell
    */
   export class Module {
-    public rl: readline.Interface;
+    private rl: readline.Interface;
     private commands: Commands;
-    private prompt: string = "CmdModule$";
+    private promptName: string = css.array("", [css.fg.green`CmdModule`, "$ "]);
 
     private defaultHandler: ((self: Self, args: string[]) => void) | undefined;
 
     public constructor(options: LoopOptions) {
-      this.prompt = options.prompt;
-      this.commands = Object.assign(options.commands, commands);
+      this.promptName = options.prompt;
+      this.commands = options.commands;
       this.defaultHandler = options.defaultHandler;
 
       this.rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
-        prompt: `${this.prompt} `,
+        prompt: this.promptName,
       });
       this.rl.prompt();
     }
@@ -50,40 +61,55 @@ namespace CMD {
       this.rl
         .on("line", line => {
           let args: Array<string> = line.split(" ");
-          try {
-            args = _.compact(args);
-            if (_.isEmpty(args)) {
+          const commandName = args.shift();
+
+          if (commandName && this.commands[commandName]) {
+            try {
+              args = _.compact(args);
+              if (_.isEmpty(args)) {
+                this.rl.prompt();
+              }
+
+              if (typeof this.commands[commandName].invoke === "function") {
+                self.name = commandName;
+                this.commands[commandName].invoke(self, args);
+              } else {
+                console.error(`${commandName} has no callback function`);
+              }
+            } catch (error) {
+              console.log(css.fg.red`${(error as Error).message}`);
+            }
+          } else {
+            if (this.defaultHandler) {
+              self.name = commandName!;
+              this.defaultHandler(self, args);
+            } else {
+              self.print(`${commandName} command not found`);
+            }
+          }
+          if (commandName && this.commands[commandName]) {
+            if (!this.commands[commandName].disableReprompt) {
               this.rl.prompt();
             }
-
-            const commandName = args.shift();
-
-            const command = (self: Self, args: Array<string>) => {
-              if (commandName && this.commands[commandName]) {
-                if (args.includes("--help")) {
-                  console.log(this.commands[commandName].description);
-                } else {
-                  this.commands[commandName].invoke(self, args);
-                }
-              } else {
-                this.defaultHandler ? this.defaultHandler(self, args) : this.commands.noFound.invoke(self, args);
-              }
-            };
-
-            if (typeof command === "function") {
-              command(self, args);
-            } else {
-              console.error(`${commandName} has no callback function`);
-            }
-          } catch (error) {
-            console.log(`${Color.FgRed}${(error as Error).message}${Color.Reset}`);
+          } else {
+            this.rl.prompt();
           }
-          this.rl.prompt();
         })
         .on("close", function() {
           console.log("Exited!");
           process.exit(0);
         });
+    }
+
+    public spawn(command: string, args: ReadonlyArray<string>, options?: SpawnOptions): void {
+      let ls = spawn(command, args, { cwd: options?.workingDirectory, stdio: "inherit" });
+      ls.on("data", data => {
+        self.print(data.toString());
+      });
+
+      ls.on("exit", code => {
+        this.rl.prompt();
+      });
     }
   }
 }

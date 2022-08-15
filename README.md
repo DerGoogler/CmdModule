@@ -1,3 +1,10 @@
+# CmdModule
+
+TODO: Add description
+
+## Quickstart
+
+```ts
 import Cmd, { css } from "./../src";
 
 const cmd = new Cmd.Module({
@@ -32,3 +39,4 @@ const cmd = new Cmd.Module({
 
 // Build the shell
 cmd.run();
+```
