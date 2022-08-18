@@ -2,41 +2,46 @@
 
 TODO: Add description
 
+> This library is in development, everything can CHANGE!
+
 ## Quickstart
 
 ```ts
-import Cmd, { css } from "./../src";
+import CmdModule, { css } from "cmdmodule";
 
-const cmd = new Cmd.Module({
+const shell = new CmdModule({
   prompt: css.array("", [css.fg.green`CLI`, "$ "]),
-  commands: {
-    arg: {
-      invoke: (self, args) => {
-        self.print(args.join(","));
-      },
-    },
-    echo: {
-      invoke: (self, args) => {
-        if (args.includes("--name")) {
-          return self.print(self.name);
-        }
-        return self.print(args[0]);
-      },
-    },
-    run: {
-      disableReprompt: true,
-      invoke: (self, args) => {
-        cmd.spawn("npm", ["run", args[0]], {
-          workingDirectory: "./",
-        });
-      },
-    },
+});
+
+shell.on("echo", (self, args) => {
+  if (args.includes("--name")) {
+    return self.print(self.name);
+  }
+  return self.print(args[0]);
+});
+
+shell.on("arg", (self, args) => {
+  self.print(args.join(","));
+});
+
+shell.on(
+  "run",
+  (self, args) => {
+    shell.spawn("npm", ["run", args[0]], {
+      workingDirectory: "./",
+    });
   },
-  defaultHandler: (self, args) => {
-    self.print(css.array(" ", [css.fg.red`${self.name}`, css.fg.yellow`command not found`]));
-  },
+  {
+    disableReprompt: true,
+  }
+);
+
+shell.default(self => {
+  self.print(css.array(" ", [css.fg.red`${self.name}`, css.fg.yellow`command not found`]));
 });
 
 // Build the shell
-cmd.run();
+shell.run();
 ```
+
+> Run it by `npx ts-node cli.ts`
